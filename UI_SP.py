@@ -25,7 +25,7 @@ class Ui_MainWindow(QObject):
         self.lblArchivo = QtWidgets.QLabel(self.frame)
         self.lblArchivo.setGeometry(QtCore.QRect(0, 30, 121, 16))
         self.lblArchivo.setObjectName("lblArchivo")
-        self.txtNombreArchivo = QtWidgets.QTextEdit(self.frame)
+        self.txtNombreArchivo = QtWidgets.QLineEdit(self.frame)
         self.txtNombreArchivo.setGeometry(QtCore.QRect(130, 30, 371, 21))
         self.txtNombreArchivo.setObjectName("txtNombreArchivo")
         self.btnSubirArchivo = QtWidgets.QPushButton(self.frame)
@@ -51,7 +51,7 @@ class Ui_MainWindow(QObject):
         #definicion de las funciones de los botones
         self.btnBuscarArchivo.clicked.connect(self.browseSlot)
         self.btnSubirArchivo.clicked.connect(self.writeDocSlot)
-        #self.lblArchivo.returnPressed.connect(self.returnPressedSlot)
+        self.txtNombreArchivo.returnPressed.connect(self.returnPressedSlot)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
