@@ -2,12 +2,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QObject, pyqtSlot
 from UI_SP import Ui_MainWindow
 import sys
+from model import Model
 
 class MainWindowUIClass(Ui_MainWindow):
     def __init__( self ):
         '''Initialize the super class
         '''
         super().__init__()
+        self.model = Model()
     
     def setupUi( self, MW ):
         ''' Setup the UI of the super class, and add here code
@@ -18,7 +20,17 @@ class MainWindowUIClass(Ui_MainWindow):
         # close the lower part of the splitter to hide the 
         # debug window under normal operations
         #self.splitter.setSizes([300, 0])
-    
+    def refreshAll( self ):
+        '''
+        Updates the widgets whenever an interaction happens.
+        Typically some interaction takes place, the UI responds,
+        and informs the model of the change.  Then this method
+        is called, pulling from the model information that is
+        updated in the GUI.
+        '''
+        self.txtNombreArchivo.setText( self.model.getFileName() )
+        self.txtResultadoArchivo.setText( self.model.getFileContents() )
+        
     def debugPrint( self, msg ):
         self.txtResultadoArchivo.append(msg)
     
@@ -26,18 +38,44 @@ class MainWindowUIClass(Ui_MainWindow):
         ''' Called when the user enters a string in the line edit and
         presses the ENTER key.
         '''
-        self.debugPrint( "RETURN key pressed in LineEdit widget" )
+        fileName =  self.txtNombreArchivo.text()
+        if self.model.isValid( fileName ):
+            self.model.setFileName( self.txtNombreArchivo.text() )
+            self.refreshAll()
+        else:
+            m = QtWidgets.QMessageBox()
+            m.setText("Invalid file name!\n" + fileName )
+            m.setIcon(QtWidgets.QMessageBox.Warning)
+            m.setStandardButtons(QtWidgets.QMessageBox.Ok
+                                 | QtWidgets.QMessageBox.Cancel)
+            m.setDefaultButton(QtWidgets.QMessageBox.Cancel)
+            ret = m.exec_()
+            self.txtNombreArchivo.setText( "" )
+            self.refreshAll()
+            self.debugPrint( "Invalid file specified: " + fileName  )
     
     def writeDocSlot( self ):
         ''' Called when the user presses the Write-Doc button.
         '''
-        self.debugPrint( "Write-Doc button pressed" )
+        self.model.writeDoc( self.txtResultadoArchivo.toPlainText() )
+        self.debugPrint( "WriteDoc button pressed!" )
 
     # slot
     def browseSlot( self ):
         ''' Called when the user presses the Browse button
         '''
-        self.debugPrint( "Browse button pressed" )
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+                        None,
+                        "QFileDialog.getOpenFileName()",
+                        "",
+                        "All Files (*);;Python Files (*.py)",
+                        options=options)
+        if fileName:
+            self.debugPrint( "setting file name: " + fileName )
+            self.model.setFileName( fileName )
+            self.refreshAll()
 
 
 def main():
